@@ -1,0 +1,62 @@
+name: ISP Network Tester server build
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+    paths:
+      - "server/**"
+      - "scripts/version.sh"
+      - "scripts/revision.sh"
+      - ".github/workflows/server-build.yml"
+      - ".github/workflows/docker-publish.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server/**"
+      - "scripts/version.sh"
+      - "scripts/revision.sh"
+      - ".github/workflows/server-build.yml"
+      - ".github/workflows/docker-publish.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  server-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.27.x"
+          cache: true
+          cache-dependency-path: server/go.mod
+
+      - name: Test
+        working-directory: server
+        run: make test
+
+      - name: Race test
+        working-directory: server
+        run: make race
+
+      - name: Vet
+        working-directory: server
+        run: make vet
+
+      - name: Build
+        working-directory: server
+        run: make build
+
+      - name: Validate Docker image build
+        working-directory: server
+        run: |
+          docker build \
+            --build-arg VERSION=ci \
+            --build-arg REVISION="${GITHUB_SHA}" \
+            --tag ispnettest:ci .
