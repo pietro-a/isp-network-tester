@@ -15,6 +15,7 @@ The measurements describe the path between the Android device and the configured
 
 - [Android application](android/README.md) — requirements, build instructions, features, and tests.
 - [Go test server](server/README.md) — configuration, HTTP endpoints, Docker image, and deployment guidance.
+- [Privacy statement](PRIVACY.md) — information stored by the app, network traffic, and server logging.
 
 ## Quick start
 

@@ -151,6 +151,10 @@ Use this only on a network where the server and traffic path are appropriately c
 
 When using the Android emulator to reach a server running on the development host, use `10.0.2.2` as the host address (with the server listening on port `8080`, unless configured otherwise).
 
+## Privacy
+
+See the [project privacy statement](../PRIVACY.md) for details about locally stored settings, network requests, server-side request logging, and the use of unencrypted HTTP.
+
 ## Tests
 
 The local unit test suite covers app-owned logic, including:
