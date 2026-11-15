@@ -57,6 +57,58 @@ Run the local unit tests:
 ./gradlew testDebugUnitTest
 ```
 
+### Build a release APK
+
+Release signing credentials are read from this file outside the repository:
+
+```
+~/.config/isp-network-tester/signing.properties
+```
+
+Create the directory and restrict access:
+
+```sh
+mkdir -p ~/.config/isp-network-tester
+chmod 700 ~/.config/isp-network-tester
+```
+
+Create `signing.properties` with the following properties. Use the absolute path to your keystore:
+
+```properties
+storeFile=/home/your-user/.android/keystores/isp-network-tester-release.jks
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyAlias=isp-network-tester
+keyPassword=YOUR_KEY_PASSWORD
+```
+
+Restrict the file permissions:
+
+```sh
+chmod 600 ~/.config/isp-network-tester/signing.properties
+```
+
+Do not commit the keystore or this properties file, and keep secure backups of the keystore and passwords. If the signing properties file is absent, Gradle creates an unsigned release APK. If the file exists but is incomplete or points to a missing keystore, the build fails rather than silently producing an unsigned APK.
+
+Build the release APK:
+
+```sh
+./gradlew assembleRelease
+```
+
+The output is named using the app version, for example:
+
+```
+app/build/outputs/apk/release/isp-network-tester-v1.0.0.apk
+```
+
+The APK is signed when the local signing properties are configured. You can verify its signature with Android's `apksigner` tool from the Android SDK Build Tools:
+
+```sh
+$ANDROID_HOME/build-tools/<build-tools-version>/apksigner verify --verbose app/build/outputs/apk/release/isp-network-tester-<version>.apk
+```
+
+Never share the release keystore or its passwords. The same signing key must be retained for future updates to install over existing installations.
+
 ## Network configuration
 
 The app currently communicates with the test server over HTTP. Cleartext traffic is permitted by the app's network security configuration to support the intended ISP-controlled deployment environment.
