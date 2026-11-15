@@ -90,6 +90,40 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
+            text = "Privacy",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "Settings you choose (server address, port, ping target, and download size) are stored on this device. The app does not include ads, analytics, or tracking, and does not upload your files or personal content.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "When you run a test, the app sends HTTP requests to the configured server and/or ICMP echo requests to the configured ping target. The Go server logs the client's IP address, user-agent, request details, response status, bytes sent, and request duration. The server operator controls access to and retention of those logs.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "Server requests currently use unencrypted HTTP. Use a server and network you trust. See the project's PRIVACY.md for the full privacy statement.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
             text = "Copyright © 2026 Petr Antonov",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
