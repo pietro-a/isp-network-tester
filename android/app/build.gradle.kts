@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.File
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -23,6 +25,46 @@ val appVersion = gitVersion.ifBlank {
 }
 val appRevision = gitRevision
 
+// Keep release credentials outside the repository. If the file is absent,
+// assembleRelease still works but produces an unsigned APK.
+val signingPropertiesFile = File(
+    System.getProperty("user.home"),
+    ".config/isp-network-tester/signing.properties",
+)
+val signingProperties = Properties()
+if (signingPropertiesFile.isFile) {
+    signingPropertiesFile.inputStream().use(signingProperties::load)
+}
+
+val releaseSigningConfigured = signingPropertiesFile.isFile
+val releaseStoreFile = signingProperties.getProperty("storeFile")?.let { configuredPath ->
+    val expandedPath = if (configuredPath == "~") {
+        System.getProperty("user.home")
+    } else {
+        configuredPath.replaceFirst("~/", "${System.getProperty("user.home")}/")
+    }
+    File(expandedPath).let { if (it.isAbsolute) it else rootProject.file(expandedPath) }
+}
+val releaseStorePassword = signingProperties.getProperty("storePassword")
+val releaseKeyAlias = signingProperties.getProperty("keyAlias")
+val releaseKeyPassword = signingProperties.getProperty("keyPassword")
+
+if (releaseSigningConfigured) {
+    val missingProperties = buildList {
+        if (releaseStoreFile == null) add("storeFile")
+        if (releaseStorePassword.isNullOrBlank()) add("storePassword")
+        if (releaseKeyAlias.isNullOrBlank()) add("keyAlias")
+        if (releaseKeyPassword.isNullOrBlank()) add("keyPassword")
+    }
+    if (missingProperties.isNotEmpty()) {
+        throw GradleException(
+            "Release signing properties are incomplete: ${missingProperties.joinToString()}"
+        )
+    }
+    if (releaseStoreFile?.isFile != true) {
+        throw GradleException("Release keystore does not exist: $releaseStoreFile")
+    }
+}
 
 android {
     namespace = "space.antonov.ispnetworktester"
@@ -38,8 +80,22 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningConfigured) {
+                storeFile = releaseStoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -83,4 +139,31 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+// Configure lazily: Android Gradle Plugin registers variant tasks during
+// project configuration, so tasks.named("assembleRelease") can be too early.
+tasks.configureEach {
+    if (name == "assembleRelease") {
+        doLast {
+            val releaseOutputDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+            val generatedApk = listOf("app-release.apk", "app-release-unsigned.apk")
+                .asSequence()
+                .map { File(releaseOutputDir, it) }
+                .firstOrNull(File::isFile)
+                ?: throw GradleException("Could not find the generated release APK in $releaseOutputDir")
+
+            val safeVersion = appVersion.replace(Regex("[^A-Za-z0-9._-]"), "-")
+            val namedApk = File(releaseOutputDir, "isp-network-tester-$safeVersion.apk")
+            if (generatedApk != namedApk) {
+                if (namedApk.exists() && !namedApk.delete()) {
+                    throw GradleException("Could not replace existing APK: $namedApk")
+                }
+                if (!generatedApk.renameTo(namedApk)) {
+                    throw GradleException("Could not rename $generatedApk to $namedApk")
+                }
+            }
+            logger.lifecycle("Release APK: $namedApk")
+        }
+    }
 }
