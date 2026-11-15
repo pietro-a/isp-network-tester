@@ -16,7 +16,7 @@ fun readGitMetadata(script: String): String =
     }.standardOutput.asText.get().trim()
 
 fun buildConfigString(value: String): String =
-    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    "\"" + value.replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"") + "\""
 
 val gitVersion = readGitMetadata("version.sh")
 val gitRevision = readGitMetadata("revision.sh")
@@ -24,6 +24,29 @@ val appVersion = gitVersion.ifBlank {
     if (gitRevision.isBlank()) "v0.0.0" else "v0.0.0-$gitRevision"
 }
 val appRevision = gitRevision
+
+// Android requires a monotonically increasing versionCode for each update.
+// Stable vMAJOR.MINOR.PATCH tags map deterministically to:
+// 1 + MAJOR * 1,000,000 + MINOR * 1,000 + PATCH.
+// Development builds retain versionCode 1.
+val releaseVersion = Regex(
+    "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+).matchEntire(appVersion)
+val appVersionCode = releaseVersion?.let { match ->
+    val major = match.groupValues[1].toLong()
+    val minor = match.groupValues[2].toLong()
+    val patch = match.groupValues[3].toLong()
+
+    if (minor > 999 || patch > 999) {
+        throw GradleException("Release tag minor and patch numbers must not exceed 999.")
+    }
+
+    val code = 1L + major * 1_000_000L + minor * 1_000L + patch
+    if (code > 2_100_000_000L) {
+        throw GradleException("Release tag produces a versionCode above Android's maximum.")
+    }
+    code.toInt()
+} ?: 1
 
 // Keep release credentials outside the repository. If the file is absent,
 // assembleRelease still works but produces an unsigned APK.
@@ -74,7 +97,7 @@ android {
         applicationId = "space.antonov.ispnetworktester"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        versionCode = appVersionCode
         versionName = appVersion
         buildConfigField("String", "REVISION", buildConfigString(appRevision))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
