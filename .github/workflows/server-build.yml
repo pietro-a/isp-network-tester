@@ -4,15 +4,31 @@ on:
   push:
     branches: ["main"]
     tags: ["v*"]
+    paths:
+      - "server/**"
+      - "scripts/version.sh"
+      - "scripts/revision.sh"
+      - ".github/workflows/server-build.yml"
+      - ".github/workflows/docker-publish.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "server/**"
+      - "scripts/version.sh"
+      - "scripts/revision.sh"
+      - ".github/workflows/server-build.yml"
+      - ".github/workflows/docker-publish.yml"
+
+permissions:
+  contents: read
 
 jobs:
   server-build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -25,6 +41,10 @@ jobs:
         working-directory: server
         run: make test
 
+      - name: Race test
+        working-directory: server
+        run: make race
+
       - name: Vet
         working-directory: server
         run: make vet
@@ -32,3 +52,11 @@ jobs:
       - name: Build
         working-directory: server
         run: make build
+
+      - name: Validate Docker image build
+        working-directory: server
+        run: |
+          docker build \
+            --build-arg VERSION=ci \
+            --build-arg REVISION="${GITHUB_SHA}" \
+            --tag ispnettest:ci .
