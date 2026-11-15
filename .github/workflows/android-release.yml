@@ -34,7 +34,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$ ]]; then
             echo "Release tags must use the vMAJOR.MINOR.PATCH format (for example, v1.2.3)." >&2
             exit 1
           fi
@@ -49,11 +49,7 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Install Android SDK packages
-        run: |
-          sdkmanager \\
-            "platforms;android-36" \\
-            "build-tools;36.0.0" \\
-            "ndk;27.2.12479018"
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -77,10 +73,10 @@ jobs:
           chmod 700 "$SIGNING_DIR"
 
           {
-            printf 'storeFile=%s\\n' "$KEYSTORE_PATH"
-            printf 'storePassword=%s\\n' "$ANDROID_RELEASE_STORE_PASSWORD"
-            printf 'keyAlias=%s\\n' "$ANDROID_RELEASE_KEY_ALIAS"
-            printf 'keyPassword=%s\\n' "$ANDROID_RELEASE_KEY_PASSWORD"
+            printf 'storeFile=%s\n' "$KEYSTORE_PATH"
+            printf 'storePassword=%s\n' "$ANDROID_RELEASE_STORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_RELEASE_KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$ANDROID_RELEASE_KEY_PASSWORD"
           } > "$SIGNING_DIR/signing.properties"
           chmod 600 "$SIGNING_DIR/signing.properties"
 
@@ -89,6 +85,7 @@ jobs:
         run: ./gradlew --no-daemon testDebugUnitTest lint assembleRelease
 
       - name: Verify APK signature
+        id: apk
         working-directory: android
         run: |
           set -euo pipefail
@@ -96,7 +93,6 @@ jobs:
           test -n "$APK"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
           echo "apk=$APK" >> "$GITHUB_OUTPUT"
-        id: apk
 
       - name: Publish GitHub Release
         env:
@@ -107,7 +103,5 @@ jobs:
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "$APK" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" "$APK" \\
-              --title "$GITHUB_REF_NAME" \\
-              --generate-notes
+            gh release create "$GITHUB_REF_NAME" "$APK" --title "$GITHUB_REF_NAME" --generate-notes
           fi
