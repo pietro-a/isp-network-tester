@@ -51,8 +51,6 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          build-root-directory: android
 
       - name: Run unit tests
         working-directory: android
