@@ -90,6 +90,84 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
+            text = "Privacy",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "On your device",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            text = "The app stores your server address and port, ping target, ping preference, and selected download size in its private app data. Android backup settings may affect whether these settings are backed up. The app does not require an account and includes no ads, analytics, or tracking SDKs.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "Network tests",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            text = "A connection check sends an HTTP request to the configured server. A download test requests generated test data from that server; it does not upload your files. A ping test sends ICMP echo requests to the configured ping target. The app does not send analytics or usage reports to the project maintainer.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "Server logging",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            text = "The included Go server logs the remote peer IP address (usually the client's address for a direct connection), HTTP method, request path, host, user-agent, response status, bytes sent, and request duration. Invalid download-size values and error details may also be logged. The server operator controls access to and retention of these logs; a proxy or hosting provider may collect additional information.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "Network security",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            text = "Server requests currently use unencrypted HTTP. Network operators may be able to observe or modify this traffic. Use a server and network you trust. ICMP traffic is also visible to the ping target and network devices along the path.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Text(
+            text = "For details about the project server and deployment, see the privacy statement distributed with the project. Contact the organization operating your configured server for information about its logging practices.",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
             text = "Copyright © 2026 Petr Antonov",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
