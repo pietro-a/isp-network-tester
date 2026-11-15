@@ -27,7 +27,7 @@ The configured server and ping target, as well as network equipment between your
 
 The Go server included in this project writes structured request logs to standard output. Its request log records:
 
-- Client IP address.
+- Remote peer IP address (normally the client address for a direct connection; it may be a proxy address when the server is behind a proxy).
 - HTTP method, request path, and host.
 - User-agent.
 - HTTP response status.
