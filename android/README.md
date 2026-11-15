@@ -81,6 +81,8 @@ keyAlias=isp-network-tester
 keyPassword=YOUR_KEY_PASSWORD
 ```
 
+If you created the key with `keytool` without specifying `-keypass`, the key password defaults to the keystore password; use the same value for `storePassword` and `keyPassword`.
+
 Restrict the file permissions:
 
 ```sh

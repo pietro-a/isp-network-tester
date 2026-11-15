@@ -82,7 +82,7 @@ android {
 
     signingConfigs {
         create("release") {
-            if ( releaseSigningConfigured) {
+            if (releaseSigningConfigured) {
                 storeFile = releaseStoreFile
                 storePassword = releaseStorePassword
                 keyAlias = releaseKeyAlias
@@ -141,26 +141,29 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 
-// Keep the normal Gradle build task, but give its release APK a useful name.
-tasks.named("assembleRelease") {
-    doLast {
-        val releaseOutputDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
-        val generatedApk = listOf("app-release.apk", "app-release-unsigned.apk")
-            .asSequence()
-            .map { File(releaseOutputDir, it) }
-            .firstOrNull(File::isFile)
-            ?: throw GradleException("Could not find the generated release APK in $releaseOutputDir")
+// Configure lazily: Android Gradle Plugin registers variant tasks during
+// project configuration, so tasks.named("assembleRelease") can be too early.
+tasks.configureEach {
+    if (name == "assembleRelease") {
+        doLast {
+            val releaseOutputDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+            val generatedApk = listOf("app-release.apk", "app-release-unsigned.apk")
+                .asSequence()
+                .map { File(releaseOutputDir, it) }
+                .firstOrNull(File::isFile)
+                ?: throw GradleException("Could not find the generated release APK in $releaseOutputDir")
 
-        val safeVersion = appVersion.replace(Regex("[^A-Za-z0-9._-]"), "-")
-        val namedApk = File(releaseOutputDir, "isp-network-tester-$safeVersion.apk")
-        if (generatedApk != namedApk) {
-            if (namedApk.exists() && !namedApk.delete()) {
-                throw GradleException("Could not replace existing APK: $namedApk")
+            val safeVersion = appVersion.replace(Regex("[^A-Za-z0-9._-]"), "-")
+            val namedApk = File(releaseOutputDir, "isp-network-tester-$safeVersion.apk")
+            if (generatedApk != namedApk) {
+                if (namedApk.exists() && !namedApk.delete()) {
+                    throw GradleException("Could not replace existing APK: $namedApk")
+                }
+                if (!generatedApk.renameTo(namedApk)) {
+                    throw GradleException("Could not rename $generatedApk to $namedApk")
+                }
             }
-            if (!generatedApk.renameTo(namedApk)) {
-                throw GradleException("Could not rename $generatedApk to $namedApk")
-            }
+            logger.lifecycle("Release APK: $namedApk")
         }
-        logger.lifecycle("Release APK: $namedApk")
     }
 }
