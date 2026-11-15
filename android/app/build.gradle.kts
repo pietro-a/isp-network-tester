@@ -16,7 +16,7 @@ fun readGitMetadata(script: String): String =
     }.standardOutput.asText.get().trim()
 
 fun buildConfigString(value: String): String =
-    "\"" + value.replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"") + "\""
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 val gitVersion = readGitMetadata("version.sh")
 val gitRevision = readGitMetadata("revision.sh")
