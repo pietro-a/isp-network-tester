@@ -57,7 +57,7 @@ Run the local unit tests:
 ./gradlew testDebugUnitTest
 ```
 
-### Build a release APK
+### Build a release APK locally
 
 Release signing credentials are read from this file outside the repository:
 
@@ -110,6 +110,38 @@ $ANDROID_HOME/build-tools/<build-tools-version>/apksigner verify --verbose app/b
 ```
 
 Never share the release keystore or its passwords. The same signing key must be retained for future updates to install over existing installations.
+
+### Automated signed GitHub releases
+
+Pushing a stable version tag in `vMAJOR.MINOR.PATCH` format (for example, `v1.2.3`) triggers the Android release workflow. The workflow runs unit tests and lint, builds and verifies a signed APK, then attaches it to a GitHub Release. The same tag also triggers the server image publishing workflow.
+
+Before the first release, add these repository Actions secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_RELEASE_KEYSTORE_BASE64` | Base64-encoded contents of the release JKS keystore |
+| `ANDROID_RELEASE_STORE_PASSWORD` | Keystore password |
+| `ANDROID_RELEASE_KEY_ALIAS` | Signing key alias |
+| `ANDROID_RELEASE_KEY_PASSWORD` | Signing key password |
+
+On Linux, encode the keystore without line breaks using:
+
+```sh
+base64 -w 0 ~/.android/keystores/isp-network-tester-release.jks
+```
+
+Copy the output directly into the `ANDROID_RELEASE_KEYSTORE_BASE64` secret. Do not put the keystore or any password in the repository or in workflow files. Keep an offline backup of the keystore and its passwords; losing the signing key prevents publishing compatible updates under the same Android application ID.
+
+Create and push a release tag only after merging the intended release commit:
+
+```sh
+git switch main
+git pull --ff-only
+git tag -a v1.2.3 -m "Release v1.2.3"
+git push origin v1.2.3
+```
+
+The version code is derived from stable semantic-version tags, so it increases with the major, minor, or patch version. Minor and patch components must be between 0 and 999. Untagged development builds use version code 1.
 
 ## Network configuration
 
